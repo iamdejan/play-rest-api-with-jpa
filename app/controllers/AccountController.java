@@ -10,8 +10,9 @@ import repositories.AccountRepository;
 import utility.ResponseUtility;
 
 import javax.inject.Inject;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 public class AccountController extends Controller {
     private final AccountRepository accountRepository;
@@ -40,10 +41,23 @@ public class AccountController extends Controller {
                 return ok(ResponseUtility.createResponse(jsonNode, true));
             }, executionContext.current());
         } catch (Exception e) {
-            return CompletableFuture.supplyAsync(() -> {
+            return supplyAsync(() -> {
                 String errorMessage = e.getLocalizedMessage();
                 return internalServerError(ResponseUtility.createResponse(errorMessage, false));
             }, executionContext.current());
+        }
+    }
+
+    public CompletionStage<Result> getAllAccounts() {
+        try {
+            return accountRepository.getAllAccounts().thenApplyAsync(accounts -> {
+                JsonNode jsonNode = Json.toJson(accounts);
+                return ok(ResponseUtility.createResponse(jsonNode, true));
+            });
+        } catch (Exception e) {
+            return supplyAsync(() -> {
+                return internalServerError(ResponseUtility.createResponse(null, false));
+            });
         }
     }
 }

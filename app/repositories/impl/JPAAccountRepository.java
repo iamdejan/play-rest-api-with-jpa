@@ -7,7 +7,7 @@ import repositories.AccountRepository;
 import repositories.DatabaseExecutionContext;
 
 import javax.inject.Inject;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -45,7 +45,12 @@ public class JPAAccountRepository implements AccountRepository {
     }
 
     @Override
-    public CompletionStage<Set<Account>> getAllAccounts() {
-        return null;
+    public CompletionStage<List<Account>> getAllAccounts() {
+        return supplyAsync(() ->
+            jpaApi.withTransaction(entityManager -> {
+                String query = String.format("select a from Account a");
+                System.out.println("Get all accounts query string: " + query);
+                return entityManager.createQuery(query, Account.class).getResultList();
+            }), databaseExecutionContext);
     }
 }

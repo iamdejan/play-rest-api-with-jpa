@@ -10,3 +10,4 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 POST    /accounts/create            controllers.AccountController.createAccount()
 POST    /accounts/recharge          controllers.AccountController.rechargeAccount(request: Request)
+GET     /accounts                   controllers.AccountController.getAllAccounts()
