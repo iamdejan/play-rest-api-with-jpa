@@ -24,9 +24,9 @@ public class JPAAccountRepository implements AccountRepository {
 
     @Override
     public CompletionStage<Account> createAccount() {
-        Account account = AccountFactory.createAccount();
         return supplyAsync(() ->
             jpaApi.withTransaction(entityManager -> {
+                Account account = AccountFactory.createAccount();
                 entityManager.persist(account);
                 return account;
             }), databaseExecutionContext);
@@ -34,7 +34,14 @@ public class JPAAccountRepository implements AccountRepository {
 
     @Override
     public CompletionStage<Account> rechargeAccount(int accountId, long rechargeAmount) {
-        return null;
+        return supplyAsync(() ->
+            jpaApi.withTransaction(entityManager -> {
+                String query = String.format("update Account set balance = balance + %d where id = %d", rechargeAmount, accountId);
+                System.out.println("Recharge account query string: " + query);
+                entityManager.createQuery(query).executeUpdate();
+                Account account = entityManager.createQuery("select a from Account a where a.id = " + accountId, Account.class).getSingleResult();
+                return account;
+            }), databaseExecutionContext);
     }
 
     @Override
