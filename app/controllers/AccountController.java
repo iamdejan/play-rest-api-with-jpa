@@ -10,9 +10,9 @@ import repositories.AccountRepository;
 import utility.ResponseUtility;
 
 import javax.inject.Inject;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-
-import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 public class AccountController extends Controller {
     private final AccountRepository accountRepository;
@@ -20,8 +20,8 @@ public class AccountController extends Controller {
 
     @Inject
     public AccountController(AccountRepository accountRepository, HttpExecutionContext executionContext) {
-        this.accountRepository = accountRepository;
-        this.executionContext = executionContext;
+        this.accountRepository = Objects.requireNonNull(accountRepository);
+        this.executionContext = Objects.requireNonNull(executionContext);
     }
 
     public CompletionStage<Result> createAccount() {
@@ -41,7 +41,7 @@ public class AccountController extends Controller {
                 return ok(ResponseUtility.createResponse(jsonNode, true));
             }, executionContext.current());
         } catch (Exception e) {
-            return supplyAsync(() -> {
+            return CompletableFuture.supplyAsync(() -> {
                 String errorMessage = e.getLocalizedMessage();
                 return internalServerError(ResponseUtility.createResponse(errorMessage, false));
             }, executionContext.current());
@@ -55,9 +55,9 @@ public class AccountController extends Controller {
                 return ok(ResponseUtility.createResponse(jsonNode, true));
             });
         } catch (Exception e) {
-            return supplyAsync(() -> {
-                return internalServerError(ResponseUtility.createResponse(null, false));
-            });
+            return CompletableFuture.supplyAsync(() ->
+                internalServerError(ResponseUtility.createResponse(null, false))
+            );
         }
     }
 }
